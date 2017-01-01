@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" 
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/security 
+		http://www.springframework.org/schema/security/spring-security-3.2.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+
+	<security:global-method-security
+		pre-post-annotations="enabled" />
+	<security:http use-expressions="true">
+		<security:access-denied-handler error-page="/403" />
+		<security:intercept-url pattern="/vehicle/addVehicle"
+			access="hasRole('ROLE_ADMIN')" />
+		<security:intercept-url pattern="/vehicle/removeVehicle"
+			access="hasRole('ROLE_ADMIN')" />
+		<security:intercept-url pattern="/reservation"
+			access="hasAnyRole('ROLE_ADMIN','ROLE_USER')" />
+		<security:form-login login-page="/login"
+			login-processing-url="/postLogin" username-parameter="userName"
+			password-parameter="password" authentication-failure-url="/loginfailed" />
+		<security:logout logout-success-url="/logout"
+			logout-url="/doLogout" />
+	</security:http>
+	
+	<bean id="secDataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/rentalcar?createDatabaseIfNotExist=true" />
+		<property name="username" value="root" />
+		<property name="password" value="MySQL" />
+	</bean>
+	
+
+	<security:authentication-manager>
+		<security:authentication-provider>
+			<!-- jdbc -->
+			<security:jdbc-user-service data-source-ref="secDataSource"
+				users-by-username-query="select username, password, enabled  from customer where username = ?"
+				authorities-by-username-query="select username, authority from customer where username = ?" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+</beans>

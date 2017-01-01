@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context 
+ 	  http://www.springframework.org/schema/context/spring-context.xsd
+      http://www.springframework.org/schema/tx 
+      http://www.springframework.org/schema/tx/spring-tx.xsd
+      http://www.springframework.org/schema/data/jpa 
+      http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<jpa:repositories base-package="ea.project.repository" />
+
+	<bean id="entityManager"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="packagesToScan" value="ea.project.domain" />
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+		</property>
+		<!-- validate: validate the schema, makes no changes to the database. update: 
+			update the schema. create: creates the schema, destroying previous data. 
+			create-drop: drop the schema at the end of the session. These options intended 
+			to be developers tools and not to facilitate any production level databases 
+			<prop key="hibernate.hbm2ddl.auto">create-drop</prop> -->
+
+		<property name="jpaProperties">
+			<props>
+				<!-- <prop key="hibernate.hbm2ddl.auto">create-drop</prop> --> 
+				<prop key="hibernate.hbm2ddl.auto">create</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+				<prop key="hibernate.hbm2ddl.import_files">populateMySQL.sql</prop> 
+				<prop key="show_sql">true</prop> 
+			</props>
+		</property>
+	</bean>
+
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/rentalcar?createDatabaseIfNotExist=true" />
+		<property name="username" value="root" />
+		<property name="password" value="MySQL" />
+	</bean>
+
+
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManager" />
+	</bean>
+
+	<!-- Scan for transaction-based resources -->
+	<context:component-scan base-package="ea.project.service" />  
+	<context:component-scan base-package="ea.project.domain" />
+	<context:component-scan base-package="ea.project.repository" />
+	<context:component-scan base-package="ea.project.daoImpl" />
+	
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean id="persistenceExceptionTranslationPostProcessor"
+		class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+	
+	<bean id="confirmationDAOImpl"	class="ea.project.daoImpl.ConfirmationDAOImpl">
+	</bean>
+	
+	<bean id="confirmationService" class="ea.project.serviceImpl.ConfirmationServiceImpl">
+	<property name="confirmationDao" ref="confirmationDAOImpl" />
+	</bean>
+	
+	<bean id="reservationDAOImpl"	class="ea.project.daoImpl.ReservationDAOImpl">
+	</bean>
+	
+	<bean id="reservationService" class="ea.project.serviceImpl.ReservationServiceImpl">
+	<property name="reservationDao" ref="reservationDAOImpl" />
+	</bean>
+	
+</beans>
